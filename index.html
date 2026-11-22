@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f3d3e">
+<title>Centro de Visitantes Angostura · Recorrido AR</title>
+<script type="module" src="lib/model-viewer.min.js"></script>
+<style>
+  :root{
+    --bg:#f3f7f4; --card:#ffffff; --ink:#14292a; --muted:#5d7273;
+    --deep:#0f3d3e; --green:#2e9d5b; --lock:#c9d3d0; --line:#dfe8e4;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+  body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+  header.top{background:var(--deep);color:#fff;padding:18px 18px 16px}
+  header.top small{opacity:.75;display:block;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+  header.top h1{margin:2px 0 0;font-size:20px;font-weight:650}
+  main{max-width:640px;margin:0 auto;padding:16px}
+
+  /* Pasaporte */
+  .progress{display:flex;align-items:center;gap:12px;margin:4px 0 16px}
+  .bar{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--green);width:0;transition:width .4s}
+  .progress b{font-size:14px;white-space:nowrap}
+  .list{display:grid;gap:10px}
+  .st{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:14px;text-decoration:none;color:inherit}
+  .st .n{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+    font-weight:700;background:var(--lock);color:#fff}
+  .st.ok .n{background:var(--green)}
+  .st h3{margin:0;font-size:15px}
+  .st p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+  .st .tag{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+  .st.ok .tag{color:var(--green);font-weight:600}
+  .st.locked{opacity:.7;pointer-events:none}
+  .hint{font-size:13px;color:var(--muted);margin:16px 2px 0}
+
+  /* Estación */
+  .viewer-wrap{position:relative;background:linear-gradient(#dff0ea,#f3f7f4)}
+  model-viewer{width:100%;height:56vh;min-height:320px;--poster-color:transparent;background:transparent}
+  .ar-btn{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);
+    background:var(--deep);color:#fff;border:0;border-radius:99px;padding:13px 22px;
+    font-size:16px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+  .badge{position:absolute;top:12px;left:12px;background:rgba(15,61,62,.9);color:#fff;
+    border-radius:99px;padding:4px 12px;font-size:13px;font-weight:600}
+  .back{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.92);color:var(--deep);
+    border-radius:99px;padding:4px 12px;font-size:13px;font-weight:600;text-decoration:none}
+  .panel{background:var(--card);margin-top:-14px;position:relative;border-radius:18px 18px 0 0;
+    padding:18px 18px 28px;box-shadow:0 -6px 20px rgba(15,61,62,.07)}
+  .panel h2{margin:0 0 2px;font-size:20px}
+  .panel .sub{margin:0 0 12px;color:var(--muted);font-size:14px}
+  .panel p.txt{margin:0 0 14px;font-size:15px}
+  audio{width:100%;margin:0 0 14px}
+  .note{font-size:13px;background:#fff7e6;border:1px solid #f0dfb5;color:#6b5a1f;
+    border-radius:10px;padding:10px 12px;margin:0 0 14px;display:none}
+  .actions{display:flex;gap:10px}
+  .btn{flex:1;text-align:center;padding:13px;border-radius:12px;font-weight:600;font-size:15px;
+    text-decoration:none;border:1px solid var(--line);color:var(--deep);background:#fff}
+  .btn.main{background:var(--green);border-color:var(--green);color:#fff}
+  .err{padding:40px 20px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <small>Centro de Visitantes Angostura · Colbún</small>
+  <h1>Recorrido en Realidad Aumentada</h1>
+</header>
+
+<main id="app"></main>
+
+<script>
+/* ============================================================
+   CONFIGURACIÓN DE ESTACIONES  ← editen solo esto
+   - modelo: archivo .glb (exportado desde Blender)
+   - usdz:   (opcional) .usdz hecho aparte. Si el modelo tiene animaciones
+             y quieren que se vean en AR de iOS, hay que poner el usdz.
+   - audio:  (opcional) ruta a un .mp3
+   ============================================================ */
+const ESTACIONES = [
+  { id:1, titulo:"Estación 1", sub:"Completar subtítulo",
+    modelo:"models/estacion1.glb", usdz:"", audio:"",
+    texto:"Aquí va la ficha informativa de la estación 1." },
+  { id:2, titulo:"Estación 2", sub:"Completar subtítulo",
+    modelo:"models/estacion2.glb", usdz:"", audio:"",
+    texto:"Aquí va la ficha informativa de la estación 2." },
+  { id:3, titulo:"Estación 3", sub:"Completar subtítulo",
+    modelo:"models/estacion3.glb", usdz:"", audio:"",
+    texto:"Aquí va la ficha informativa de la estación 3." },
+  { id:4, titulo:"Los Peces de la Cuenca del Biobío", sub:"Peces nativos e introducidos",
+    modelo:"models/estacion4.glb", usdz:"", audio:"",
+    texto:"Aquí va la ficha informativa de la estación 4." },
+  { id:5, titulo:"La Energía del Agua, un Río de Vida", sub:"Fauna de río",
+    modelo:"models/estacion5.glb", usdz:"", audio:"",
+    texto:"Aquí va la ficha informativa de la estación 5." }
+];
+/* ============================================================ */
+
+const $app = document.getElementById("app");
+const KEY = "angostura_visitadas";
+
+function leerVisitadas(){
+  try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch(e){ return []; }
+}
+function marcarVisitada(id){
+  const v = leerVisitadas();
+  if(!v.includes(id)){
+    v.push(id);
+    try { localStorage.setItem(KEY, JSON.stringify(v)); } catch(e){}
+  }
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function vistaPasaporte(){
+  const vis = leerVisitadas();
+  const pct = Math.round(vis.length / ESTACIONES.length * 100);
+  $app.innerHTML = `
+    <div class="progress">
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <b>${vis.length} de ${ESTACIONES.length}</b>
+    </div>
+    <div class="list">
+      ${ESTACIONES.map(e => {
+        const ok = vis.includes(e.id);
+        return `<a class="st ${ok ? "ok" : "locked"}" ${ok ? `href="?e=${e.id}"` : ""}>
+          <span class="n">${ok ? "✓" : e.id}</span>
+          <div><h3>${esc(e.titulo)}</h3><p>${esc(e.sub)}</p></div>
+          <span class="tag">${ok ? "Descubierta" : "Escanea el QR"}</span>
+        </a>`;
+      }).join("")}
+    </div>
+    <p class="hint">Cada estación se desbloquea al escanear su código QR con la cámara del teléfono.</p>`;
+}
+
+function vistaEstacion(e){
+  const i = ESTACIONES.indexOf(e);
+  const sig = ESTACIONES[i + 1];
+  $app.style.padding = "0"; $app.style.maxWidth = "none";
+  $app.innerHTML = `
+    <div class="viewer-wrap">
+      <model-viewer id="mv" src="${esc(e.modelo)}" ${e.usdz ? `ios-src="${esc(e.usdz)}"` : ""}
+        alt="Modelo 3D: ${esc(e.titulo)}"
+        ar ar-modes="quick-look webxr scene-viewer" ar-placement="floor" ar-scale="auto"
+        camera-controls touch-action="pan-y" auto-rotate autoplay
+        shadow-intensity="1" environment-image="neutral" exposure="1.1">
+        <button slot="ar-button" class="ar-btn">Ver en AR</button>
+      </model-viewer>
+      <span class="badge">Estación ${e.id}</span>
+      <a class="back" href="./">Pasaporte</a>
+    </div>
+    <section class="panel">
+      <h2>${esc(e.titulo)}</h2>
+      <p class="sub">${esc(e.sub)}</p>
+      <div class="note" id="note"></div>
+      <p class="txt">${esc(e.texto)}</p>
+      ${e.audio ? `<audio controls preload="none" src="${esc(e.audio)}"></audio>` : ""}
+      <div class="actions">
+        <a class="btn" href="./">Mi pasaporte</a>
+        <a class="btn main" href="${sig ? `?e=${sig.id}` : "./"}"
+           onclick="marcarVisitada(${e.id})">${sig ? "Continuar recorrido" : "Terminar"}</a>
+      </div>
+    </section>`;
+
+  const mv = document.getElementById("mv");
+  const note = document.getElementById("note");
+  const aviso = t => { note.textContent = t; note.style.display = "block"; };
+
+  mv.addEventListener("load", () => {
+    marcarVisitada(e.id);   // QR escaneado + modelo cargado = estación descubierta
+    if(!mv.canActivateAR){
+      aviso("Para ver el modelo en tu entorno abre esta página en Safari desde un iPhone (iOS 15 o superior).");
+    }
+  });
+  mv.addEventListener("error", () => {
+    aviso("No se pudo cargar el modelo 3D. Revisa tu conexión e intenta de nuevo.");
+  });
+}
+
+/* Router: ?e=N muestra la estación, sin parámetro muestra el pasaporte */
+const n = parseInt(new URLSearchParams(location.search).get("e"), 10);
+const est = ESTACIONES.find(x => x.id === n);
+if(est) vistaEstacion(est);
+else if(location.search.includes("e=")) $app.innerHTML = `<div class="err">Código QR no válido.<br><a href="./">Ir al pasaporte</a></div>`;
+else vistaPasaporte();
+
+/* Service worker: deja la página y los modelos en caché para usarla sin conexión */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+</script>
+</body>
+</html>
