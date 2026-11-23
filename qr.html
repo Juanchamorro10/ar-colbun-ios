@@ -6,32 +6,50 @@
 <title>Generador de QR · Estaciones</title>
 <script src="lib/qrcode.js"></script>
 <style>
-  body{font-family:system-ui,sans-serif;max-width:900px;margin:24px auto;padding:0 16px;color:#14292a}
+  body{font-family:system-ui,sans-serif;max-width:900px;margin:24px auto;padding:0 16px;color:#1a2233}
   input{width:100%;padding:10px;font-size:16px;border:1px solid #bcd;border-radius:8px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;margin-top:20px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;margin-top:20px}
   .q{border:1px solid #cde;border-radius:12px;padding:14px;text-align:center;break-inside:avoid}
   .q svg{width:100%;height:auto}
-  .q h3{margin:8px 0 2px;font-size:16px} .q small{color:#567;word-break:break-all}
-  @media print{input,p.ayuda{display:none}}
+  .q h3{margin:8px 0 2px;font-size:16px}
+  .q small{display:block;color:#567;word-break:break-all;font-size:11px}
+  .q a{display:inline-block;margin-top:8px;font-size:13px;color:#0b5cad}
+  @media print{input,p.ayuda,.q a{display:none}}
 </style>
 </head>
 <body>
-<h1>QR de las 5 estaciones</h1>
-<p class="ayuda">Pega la URL donde quedó publicada la página (con https y terminando en /). Imprime esta hoja o guarda cada QR como imagen.</p>
-<input id="base" value="https://juanchamorro10.github.io/ar-colbun/">
+<h1>QR del recorrido</h1>
+<p class="ayuda">Cada QR lleva el link de la página y el código de la app. Con la cámara del iPhone abre la estación en Safari; con el escáner de la app se lee el código (la parte después de <b>c=</b>). Imprime esta hoja o descarga cada QR.</p>
+<input id="base" value="https://juanchamorro10.github.io/ar-colbun-ios/">
 <div class="grid" id="grid"></div>
 <script>
-const NOMBRES = ["Estación 1","Estación 2","Estación 3","Los Peces de la Cuenca del Biobío","La Energía del Agua, un Río de Vida"];
+const ESTACIONES = [
+  {n:1, codigo:"QR_AGUA_01",    nombre:"El Ciclo del Agua"},
+  {n:2, codigo:"QR_VIDA_02",    nombre:"El Agua, Origen de la Vida"},
+  {n:3, codigo:"QR_PECES_03",   nombre:"Los Peces"},
+  {n:4, codigo:"QR_BIOBIO_04",  nombre:"Los Peces de la Cuenca del Biobío"},
+  {n:5, codigo:"QR_ENERGIA_05", nombre:"La Energía del Agua, un Río de Vida"}
+];
 const $b = document.getElementById("base"), $g = document.getElementById("grid");
 function dibujar(){
   let base = $b.value.trim(); if(base && !base.endsWith("/")) base += "/";
   $g.innerHTML = "";
-  NOMBRES.forEach((nombre, i) => {
-    const url = base + "?e=" + (i + 1);
-    const qr = qrcode(0, "M"); qr.addData(url); qr.make();
+  const items = [{id:"entrada", titulo:"QR de entrada", sub:"Escanea con la cámara del iPhone con Wi-Fi, antes de entrar al sendero", url:base}]
+    .concat(ESTACIONES.map(e => ({id:"estacion_" + e.n, titulo:e.n + ". " + e.nombre, url:base + "?e=" + e.n + "&c=" + e.codigo})));
+  items.forEach(it => {
+    const qr = qrcode(0, "M"); qr.addData(it.url); qr.make();
+    const svg = qr.createSvgTag({cellSize:6, margin:3, scalable:true});
     const d = document.createElement("div"); d.className = "q";
-    d.innerHTML = qr.createSvgTag({cellSize:6, margin:2, scalable:true}) +
-      "<h3>" + (i+1) + ". " + nombre + "</h3><small>" + url + "</small>";
+    d.innerHTML = svg + "<h3>" + it.titulo + "</h3>" + (it.sub ? "<small style='color:#0b5cad'>" + it.sub + "</small>" : "") + "<small>" + it.url + "</small>";
+    const a = document.createElement("a");
+    a.textContent = "Descargar SVG"; a.href = "#";
+    a.onclick = ev => {
+      ev.preventDefault();
+      const blob = new Blob([svg], {type:"image/svg+xml"});
+      const l = document.createElement("a");
+      l.href = URL.createObjectURL(blob); l.download = "QR_" + it.id + ".svg"; l.click();
+    };
+    d.appendChild(a);
     $g.appendChild(d);
   });
 }
