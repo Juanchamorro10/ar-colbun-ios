@@ -3,64 +3,127 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f3d3e">
+<meta name="theme-color" content="#0b5cad">
 <title>Centro de Visitantes Angostura · Recorrido AR</title>
 <script type="module" src="lib/model-viewer.min.js"></script>
 <style>
   :root{
-    --bg:#f3f7f4; --card:#ffffff; --ink:#14292a; --muted:#5d7273;
-    --deep:#0f3d3e; --green:#2e9d5b; --lock:#c9d3d0; --line:#dfe8e4;
+    --bg:#f4f6f9; --card:#ffffff; --ink:#1a2233; --muted:#6b7a90; --line:#e3e8ef;
+    --blue:#0b5cad; --blue-dark:#08467f; --blue-soft:#e8f1fb;
+    --green:#2a9d4b; --green-soft:#e9f8ee; --green-line:#bfe8cc; --lock:#c5cdd8; --chip:#eceff4;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--bg);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.45}
-  body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
-  header.top{background:var(--deep);color:#fff;padding:18px 18px 16px}
-  header.top small{opacity:.75;display:block;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+  body{padding-top:env(safe-area-inset-top);padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+  header.top{background:var(--blue);color:#fff;padding:18px 18px 16px}
+  header.top small{opacity:.8;display:block;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
   header.top h1{margin:2px 0 0;font-size:20px;font-weight:650}
   main{max-width:640px;margin:0 auto;padding:16px}
+  main.full{max-width:none;padding:0}
 
   /* Pasaporte */
-  .progress{display:flex;align-items:center;gap:12px;margin:4px 0 16px}
-  .bar{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
-  .bar i{display:block;height:100%;background:var(--green);width:0;transition:width .4s}
-  .progress b{font-size:14px;white-space:nowrap}
+  .card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(20,40,80,.06)}
+  .kicker{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--blue);font-weight:600}
+  .card h2{margin:4px 0 2px;font-size:24px}
+  .card .sub{margin:0;font-size:13px;color:var(--muted)}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .pill{background:var(--green-soft);color:#1f7a39;border-radius:99px;padding:4px 12px;font-size:12px;font-weight:600}
+  .bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin:10px 0}
+  .bar i{display:block;height:100%;background:var(--blue);width:0;transition:width .4s}
+  .pct{color:var(--blue);font-weight:700;font-size:14px}
+  .okline{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+  .okline b{margin-left:auto;color:var(--blue)}
+  h2.sec{font-size:19px;margin:18px 2px 10px}
   .list{display:grid;gap:10px}
   .st{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
-    border-radius:14px;padding:14px;text-decoration:none;color:inherit}
-  .st .n{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+    border-radius:16px;padding:14px;text-decoration:none;color:inherit}
+  .st .n{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
     font-weight:700;background:var(--lock);color:#fff}
+  .st.ok{background:var(--green-soft);border-color:var(--green-line)}
   .st.ok .n{background:var(--green)}
-  .st h3{margin:0;font-size:15px}
-  .st p{margin:2px 0 0;font-size:13px;color:var(--muted)}
-  .st .tag{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
-  .st.ok .tag{color:var(--green);font-weight:600}
-  .st.locked{opacity:.7;pointer-events:none}
-  .hint{font-size:13px;color:var(--muted);margin:16px 2px 0}
+  .st small{color:var(--blue);font-size:12px;font-weight:600}
+  .st h3{margin:0;font-size:17px;line-height:1.2}
+  .st p{margin:3px 0 0;font-size:12.5px;color:var(--muted)}
+  .st .tag{margin-left:auto;font-size:11.5px;color:var(--muted);white-space:nowrap;align-self:flex-start}
+  .st.ok .tag{background:#cdeedb;color:#1f7a39;font-weight:600;border-radius:99px;padding:3px 10px}
+  .st.locked{opacity:.75;pointer-events:none}
+  .hint{font-size:13px;color:var(--muted);margin:14px 2px 0}
+  .scan{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom));
+    background:var(--blue);color:#fff;border:0;border-radius:99px;padding:15px 40px;font-size:17px;
+    font-weight:650;box-shadow:0 8px 20px rgba(11,92,173,.35)}
 
   /* Estación */
-  .viewer-wrap{position:relative;background:linear-gradient(#dff0ea,#f3f7f4)}
-  model-viewer{width:100%;height:56vh;min-height:320px;--poster-color:transparent;background:transparent}
+  .viewer-wrap{position:relative;background:linear-gradient(#d9e8f7,#f4f6f9)}
+  model-viewer{width:100%;height:50vh;min-height:300px;--poster-color:transparent;background:transparent}
   .ar-btn{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);
-    background:var(--deep);color:#fff;border:0;border-radius:99px;padding:13px 22px;
+    background:var(--blue);color:#fff;border:0;border-radius:99px;padding:13px 24px;
     font-size:16px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25)}
-  .badge{position:absolute;top:12px;left:12px;background:rgba(15,61,62,.9);color:#fff;
+  .badge{position:absolute;top:12px;left:12px;background:rgba(11,92,173,.92);color:#fff;
     border-radius:99px;padding:4px 12px;font-size:13px;font-weight:600}
-  .back{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.92);color:var(--deep);
+  .back{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.95);color:var(--blue);
     border-radius:99px;padding:4px 12px;font-size:13px;font-weight:600;text-decoration:none}
-  .panel{background:var(--card);margin-top:-14px;position:relative;border-radius:18px 18px 0 0;
-    padding:18px 18px 28px;box-shadow:0 -6px 20px rgba(15,61,62,.07)}
-  .panel h2{margin:0 0 2px;font-size:20px}
-  .panel .sub{margin:0 0 12px;color:var(--muted);font-size:14px}
-  .panel p.txt{margin:0 0 14px;font-size:15px}
+  .panel{background:var(--card);margin-top:-14px;position:relative;border-radius:20px 20px 0 0;
+    padding:20px 18px 24px;box-shadow:0 -6px 20px rgba(11,92,173,.08)}
+  .panel h2{margin:0 0 4px;font-size:22px;line-height:1.2}
+  .panel .sub{margin:0 0 14px;color:var(--muted);font-size:14px}
+  .ficha h3{margin:18px 0 6px;font-size:16px;color:var(--blue)}
+  .ficha p{margin:0 0 12px;font-size:15px}
+  .ficha ul{margin:0 0 12px;padding-left:20px;font-size:15px}
+  .ficha li{margin-bottom:4px}
+  .ficha .nota{font-size:12.5px;color:var(--muted)}
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px;font-size:13px}
+  .flow span{background:var(--blue-soft);color:var(--blue-dark);border-radius:8px;padding:5px 9px;font-style:italic}
+  .flow i{color:var(--muted);font-style:normal}
+  .esp{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+  .esp-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .esp b{font-size:15px}
+  .esp em{display:block;font-size:13px;color:var(--muted)}
+  .esp small{display:inline-block;margin:4px 0 0;font-size:12px;color:var(--blue);font-weight:600}
+  .esp p{margin:6px 0 0;font-size:14px}
+  .est{flex:none;font-size:11px;font-weight:600;border-radius:99px;padding:3px 9px;white-space:nowrap}
+  .est.peligro{background:#fde8e8;color:#b42318}
+  .est.vulnerable{background:#ffefd9;color:#b54708}
+  .est.casi{background:#fff6cc;color:#8a6d00}
+  .est.menor{background:#dff5e6;color:#1f7a39}
+  .est.intro{background:var(--chip);color:#475467}
   audio{width:100%;margin:0 0 14px}
   .note{font-size:13px;background:#fff7e6;border:1px solid #f0dfb5;color:#6b5a1f;
     border-radius:10px;padding:10px 12px;margin:0 0 14px;display:none}
-  .actions{display:flex;gap:10px}
+  .actions{display:flex;gap:10px;margin-top:18px}
   .btn{flex:1;text-align:center;padding:13px;border-radius:12px;font-weight:600;font-size:15px;
-    text-decoration:none;border:1px solid var(--line);color:var(--deep);background:#fff}
-  .btn.main{background:var(--green);border-color:var(--green);color:#fff}
+    text-decoration:none;border:1px solid var(--line);color:var(--blue);background:#fff}
+  .btn.main{background:var(--blue);border-color:var(--blue);color:#fff}
   .err{padding:40px 20px;text-align:center;color:var(--muted)}
+
+  /* Encuesta */
+  .enc h2{font-size:26px;margin:4px 2px 2px}
+  .enc .lead{margin:0 2px 14px;color:var(--muted);font-size:14px}
+  .q h3{margin:0 0 10px;font-size:17px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:0;background:var(--chip);color:var(--ink);border-radius:99px;padding:9px 15px;font-size:14px;font-family:inherit}
+  .chip.sel{background:var(--blue);color:#fff;font-weight:600}
+  .chips.nums .chip{width:42px;height:42px;padding:0}
+  textarea{width:100%;min-height:110px;border:1px solid var(--line);border-radius:10px;padding:10px;
+    font:inherit;font-size:15px;background:#f1f3f6;resize:vertical}
+  .send{display:block;margin:18px auto 6px;background:var(--blue);color:#fff;border:0;border-radius:99px;
+    padding:15px 44px;font-size:17px;font-weight:650;box-shadow:0 8px 20px rgba(11,92,173,.3)}
+  .msg{text-align:center;font-size:13px;color:#b42318;min-height:18px}
+  .thanks{text-align:center;padding:28px 18px}
+  .thanks h2{margin:8px 0}
+
+  /* Barra inferior y hoja QR */
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);
+    display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:20}
+  nav.tabs a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 9px;
+    font-size:12px;color:var(--muted);text-decoration:none}
+  nav.tabs a.on{color:var(--blue);font-weight:650}
+  nav.tabs svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .sheet{position:fixed;inset:0;background:rgba(10,20,40,.45);display:none;align-items:flex-end;z-index:30}
+  .sheet.open{display:flex}
+  .sheet div{background:#fff;width:100%;border-radius:20px 20px 0 0;padding:22px 20px calc(24px + env(safe-area-inset-bottom))}
+  .sheet h3{margin:0 0 8px;font-size:19px}
+  .sheet p{margin:0 0 16px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -71,74 +134,198 @@
 </header>
 
 <main id="app"></main>
+<nav class="tabs" id="tabs"></nav>
+<div class="sheet" id="sheet"><div><h3>Escanear QR</h3><p>Abre la cámara de tu iPhone y apúntala al código QR de la estación. Toca el aviso que aparece y se abrirá la estación en Safari.</p><a class="btn main" href="#" id="cerrar" style="display:block">Entendido</a></div></div>
 
 <script>
 /* ============================================================
-   CONFIGURACIÓN DE ESTACIONES  ← editen solo esto
-   - modelo: archivo .glb (exportado desde Blender)
-   - usdz:   (opcional) .usdz hecho aparte. Si el modelo tiene animaciones
-             y quieren que se vean en AR de iOS, hay que poner el usdz.
-   - audio:  (opcional) ruta a un .mp3
+   CONFIGURACIÓN  ← lo que se edita está aquí
    ============================================================ */
+
+// Dónde se guardan las respuestas de la encuesta (URL de Google Apps Script).
+// Si queda vacío, las respuestas solo se guardan en el teléfono del visitante.
+const ENCUESTA_URL = "";
+
+/* Tipos de bloque de la ficha:
+   {h:"Título"}  {p:"Párrafo"}  {ul:["a","b"]}  {flow:["a","b"]}  {nota:"texto chico"}
+   {especies:[{n,l,t,d,e,c}]}  (n nombre, l nombre científico, t tamaño, d descripción, e estado, c clase de color)
+   Clases de color: peligro, vulnerable, casi, menor, intro                                    */
 const ESTACIONES = [
-  { id:1, titulo:"Estación 1", sub:"Completar subtítulo",
+  { id:1, titulo:"El Ciclo del Agua",
+    corto:"El origen de la vida y transformación del agua",
+    sub:"El origen de la vida (H2O). Molécula formada por dos átomos de hidrógeno y uno de oxígeno.",
     modelo:"models/estacion1.glb", usdz:"", audio:"",
-    texto:"Aquí va la ficha informativa de la estación 1." },
-  { id:2, titulo:"Estación 2", sub:"Completar subtítulo",
+    ficha:[
+      {p:"El agua modela la Tierra y provee energía. En su ciclo de permanente transformación, posee tres estados: sólido, líquido y gaseoso. Los ríos fluyen continuamente desde la alta montaña hasta desembocar en el mar, lagos u otros ríos."}
+    ]},
+
+  { id:2, titulo:"El Agua, Origen de la Vida",
+    corto:"De los organismos marinos a los seres terrestres",
+    sub:"De los primeros organismos marinos a los vertebrados terrestres.",
     modelo:"models/estacion2.glb", usdz:"", audio:"",
-    texto:"Aquí va la ficha informativa de la estación 2." },
-  { id:3, titulo:"Estación 3", sub:"Completar subtítulo",
+    ficha:[
+      {p:"Hace cuatro mil millones de años se originó la vida en el mar."},
+      {h:"De los peces a la tierra firme"},
+      {p:"Los primeros vertebrados fueron los peces. Al surgir los continentes, algunos emigraron a la tierra adaptándose a su nuevo medio: sus aletas lobuladas se convirtieron en patas y su cola se volvió más larga y musculosa."},
+      {p:"Así surgieron los anfibios (tetrápodos), combinando respiración pulmonar y branquial. Viven en tierra pero regresan al agua a criar. Más tarde, los reptiles dominaron la era Mesozoica; en el Jurásico surgieron las primeras aves con dientes y cola emplumada, seguidas por los mamíferos vivíparos de temperatura constante."},
+      {h:"Transición evolutiva (fósiles mar a tierra)"},
+      {flow:["Eusthenopteron","Panderichthys","Tiktaalik (período de transición)","Acanthostega","Ichthyostega"]},
+      {h:"El agua en el cuerpo humano"},
+      {p:"Así como el 75% del planeta está cubierto por agua, el 70% de nuestro cuerpo está formado por ella:"},
+      {ul:["Sangre: 82%","Cerebro y músculos: 75%","Huesos: 22%"]},
+      {h:"Funciones vitales"},
+      {p:"Transporta oxígeno y nutrientes a las células, transmite impulsos nerviosos, regula la temperatura corporal, amortigua las articulaciones, ayuda a convertir alimentos en energía y elimina toxinas."}
+    ]},
+
+  { id:3, titulo:"Los Peces",
+    corto:"Anatomía y clasificación de peces de agua dulce",
+    sub:"Anatomía y clasificación de peces de agua dulce.",
     modelo:"models/estacion3.glb", usdz:"", audio:"",
-    texto:"Aquí va la ficha informativa de la estación 3." },
-  { id:4, titulo:"Los Peces de la Cuenca del Biobío", sub:"Peces nativos e introducidos",
+    ficha:[
+      {p:"Existen tres clases de peces:"},
+      {ul:["Agnatos o peces sin mandíbulas.","Condrictos o peces cartilaginosos.","Osteictos o peces óseos."]},
+      {p:"Poseen esqueleto óseo y espina dorsal; respiran mediante branquias, nadan con aletas y su cuerpo está protegido por escamas. Son ovíparos, se alimentan de peces más pequeños, algas e insectos."}
+    ]},
+
+  { id:4, titulo:"Los Peces de la Cuenca del Biobío",
+    corto:"Biodiversidad y especies endémicas del Biobío",
+    sub:"Biodiversidad y especies endémicas de la cuenca del río Biobío.",
     modelo:"models/estacion4.glb", usdz:"", audio:"",
-    texto:"Aquí va la ficha informativa de la estación 4." },
-  { id:5, titulo:"La Energía del Agua, un Río de Vida", sub:"Fauna de río",
+    ficha:[
+      {p:"La cuenca del Biobío es hogar de peces nativos, varios exclusivos de Chile y de tamaño muy pequeño. Muchos están amenazados."},
+      {h:"Peces nativos"},
+      {especies:[
+        {n:"Bagrecito", l:"Bullockia maldonadoi", t:"7 cm", e:"En peligro de extinción", c:"peligro",
+         d:"Vive en ríos andinos del centro y sur de Chile."},
+        {n:"Tollo de agua dulce", l:"Diplomystes nahuelbutaensis", t:"7 cm", e:"En peligro de extinción", c:"peligro",
+         d:"Habita sectores caudalosos y profundos de ríos entre el Maule y la Araucanía."},
+        {n:"Carmelita de Concepción", l:"Percilia irwini", t:"7 cm", e:"En peligro de extinción", c:"peligro",
+         d:"También llamada coloradita. Vive en ríos y lagos de la región del Biobío, desplazándose sobre las piedras."},
+        {n:"Bagre chico", l:"Trichomycterus areolatus", t:"15 cm", e:"Vulnerable", c:"vulnerable",
+         d:"Conocido como pez gato o bagre de centro, tiene amplia distribución en Chile. Vive bajo piedras en aguas calmas y litoral arenoso."},
+        {n:"Pejerrey chileno", l:"Basilichthys australis", t:"30 cm", e:"Casi amenazado", c:"casi",
+         d:"Prefiere aguas oxigenadas de baja velocidad."},
+        {n:"Perca trucha", l:"Percichthys trucha", t:"35 cm", e:"Preocupación menor", c:"menor",
+         d:"Vive en lagos y zonas bajas de los ríos."},
+        {n:"Puye", l:"Galaxias maculatus", t:"5 cm", e:"Preocupación menor", c:"menor",
+         d:"Abunda en esteros poco profundos con hojas y ramas."}
+      ]},
+      {h:"Peces introducidos"},
+      {especies:[
+        {n:"Trucha arcoíris", l:"Oncorhynchus mykiss", t:"Hasta 60 cm", e:"Introducida", c:"intro",
+         d:"Conocida como cabeza de acero, vive en ríos, arroyos y lagos de aguas frías y transparentes."},
+        {n:"Trucha fario", l:"Salmo trutta fario", t:"Hasta 100 cm", e:"Introducida", c:"intro",
+         d:"Es la trucha café, de las zonas altas de los ríos donde el agua es limpia y oxigenada."}
+      ]},
+      {p:"Las especies introducidas pueden desplazar a los peces nativos."},
+      {nota:"Estado de conservación según el Ministerio del Medio Ambiente (2013)."}
+    ]},
+
+  { id:5, titulo:"La Energía del Agua, un Río de Vida",
+    corto:"Aprovechamiento hidroeléctrico y sustentabilidad",
+    sub:"Aprovechamiento hidroeléctrico, sustentabilidad y desarrollo.",
     modelo:"models/estacion5.glb", usdz:"", audio:"",
-    texto:"Aquí va la ficha informativa de la estación 5." }
+    ficha:[
+      {p:"El agua de un río no solo mueve turbinas: también sostiene la vida a su alrededor. Un río limpio y con caudal estable alimenta a peces, aves acuáticas y mamíferos como el zorro, que baja a beber a sus orillas."},
+      {p:"La energía hidroeléctrica aprovecha el flujo del agua para generar electricidad sin quemar combustibles, por eso es una fuente renovable. Pero su desarrollo debe cuidar el río: mantener un caudal ecológico y permitir que la fauna se siga moviendo y reproduciendo."},
+      {p:"Esta estación muestra ese equilibrio: producir energía y proteger la vida que depende del río."}
+    ]}
 ];
+
+const PUNTOS_POR_ESTACION = 12;
 /* ============================================================ */
 
 const $app = document.getElementById("app");
 const KEY = "angostura_visitadas";
-
-function leerVisitadas(){
-  try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch(e){ return []; }
-}
-function marcarVisitada(id){
-  const v = leerVisitadas();
-  if(!v.includes(id)){
-    v.push(id);
-    try { localStorage.setItem(KEY, JSON.stringify(v)); } catch(e){}
-  }
-}
+const COLA = "angostura_encuestas";
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
+function leer(k){ try { return JSON.parse(localStorage.getItem(k)) || []; } catch(e){ return []; } }
+function guardar(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+function leerVisitadas(){ return leer(KEY); }
+function marcarVisitada(id){
+  const v = leerVisitadas();
+  if(!v.includes(id)){ v.push(id); guardar(KEY, v); }
+}
+
+/* ---------- Barra inferior ---------- */
+const ICO_PASAPORTE = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg>';
+const ICO_ENCUESTA  = '<svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12.5h5"/></svg>';
+function barra(activa){
+  document.getElementById("tabs").innerHTML =
+    `<a href="./" class="${activa==="pasaporte"?"on":""}">${ICO_PASAPORTE}Pasaporte</a>
+     <a href="?v=encuesta" class="${activa==="encuesta"?"on":""}">${ICO_ENCUESTA}Encuesta</a>`;
+}
+
+/* ---------- Pasaporte ---------- */
 function vistaPasaporte(){
+  barra("pasaporte");
   const vis = leerVisitadas();
-  const pct = Math.round(vis.length / ESTACIONES.length * 100);
+  const total = ESTACIONES.length;
+  const pct = Math.round(vis.length / total * 100);
+  const completo = vis.length === total;
   $app.innerHTML = `
-    <div class="progress">
-      <div class="bar"><i style="width:${pct}%"></i></div>
-      <b>${vis.length} de ${ESTACIONES.length}</b>
+    <div class="card">
+      <div class="kicker">Recorrido activo</div>
+      <h2>Pasaporte Digital</h2>
+      <p class="sub">Sendero Botánico • Colbún</p>
     </div>
+    <div class="card">
+      <div class="row">
+        <b style="font-size:17px">${vis.length} de ${total} estaciones</b>
+        <span class="pill">Nivel: Explorador Maule</span>
+      </div>
+      <div class="row" style="margin-top:12px;font-size:13px;color:var(--muted)">
+        <span>Progreso del Sendero</span><span class="pct">${pct}% completado</span>
+      </div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="okline">
+        <span>${completo ? "✅ ¡Sendero completado!" : "Sigue escaneando los QR del sendero"}</span>
+        <b>+${vis.length * PUNTOS_POR_ESTACION} pts AR</b>
+      </div>
+    </div>
+    <h2 class="sec">Estaciones del Sendero</h2>
     <div class="list">
       ${ESTACIONES.map(e => {
         const ok = vis.includes(e.id);
         return `<a class="st ${ok ? "ok" : "locked"}" ${ok ? `href="?e=${e.id}"` : ""}>
           <span class="n">${ok ? "✓" : e.id}</span>
-          <div><h3>${esc(e.titulo)}</h3><p>${esc(e.sub)}</p></div>
-          <span class="tag">${ok ? "Descubierta" : "Escanea el QR"}</span>
+          <div><small>Estación ${e.id}</small><h3>${esc(e.titulo)}</h3><p>${esc(e.corto)}</p></div>
+          <span class="tag">${ok ? "Descubierto" : "Por descubrir"}</span>
         </a>`;
       }).join("")}
     </div>
-    <p class="hint">Cada estación se desbloquea al escanear su código QR con la cámara del teléfono.</p>`;
+    <p class="hint">Cada estación se desbloquea al escanear su código QR.</p>
+    <button class="scan" id="scan">Escanear QR</button>`;
+  const sheet = document.getElementById("sheet");
+  document.getElementById("scan").onclick = () => sheet.classList.add("open");
+  document.getElementById("cerrar").onclick = ev => { ev.preventDefault(); sheet.classList.remove("open"); };
 }
 
+/* ---------- Ficha ---------- */
+function renderFicha(bloques){
+  return bloques.map(b => {
+    if(b.h) return `<h3>${esc(b.h)}</h3>`;
+    if(b.p) return `<p>${esc(b.p)}</p>`;
+    if(b.ul) return `<ul>${b.ul.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`;
+    if(b.flow) return `<div class="flow">${b.flow.map(x => `<span>${esc(x)}</span>`).join("<i>→</i>")}</div>`;
+    if(b.nota) return `<p class="nota">${esc(b.nota)}</p>`;
+    if(b.especies) return b.especies.map(s => `
+      <div class="esp">
+        <div class="esp-top"><b>${esc(s.n)}</b><span class="est ${esc(s.c || "intro")}">${esc(s.e)}</span></div>
+        <em>${esc(s.l)}</em><small>${esc(s.t)}</small>
+        <p>${esc(s.d)}</p>
+      </div>`).join("");
+    return "";
+  }).join("");
+}
+
+/* ---------- Estación ---------- */
 function vistaEstacion(e){
+  barra("pasaporte");
   const i = ESTACIONES.indexOf(e);
   const sig = ESTACIONES[i + 1];
-  $app.style.padding = "0"; $app.style.maxWidth = "none";
+  $app.className = "full";
   $app.innerHTML = `
     <div class="viewer-wrap">
       <model-viewer id="mv" src="${esc(e.modelo)}" ${e.usdz ? `ios-src="${esc(e.usdz)}"` : ""}
@@ -155,21 +342,20 @@ function vistaEstacion(e){
       <h2>${esc(e.titulo)}</h2>
       <p class="sub">${esc(e.sub)}</p>
       <div class="note" id="note"></div>
-      <p class="txt">${esc(e.texto)}</p>
       ${e.audio ? `<audio controls preload="none" src="${esc(e.audio)}"></audio>` : ""}
+      <div class="ficha">${renderFicha(e.ficha)}</div>
       <div class="actions">
         <a class="btn" href="./">Mi pasaporte</a>
-        <a class="btn main" href="${sig ? `?e=${sig.id}` : "./"}"
-           onclick="marcarVisitada(${e.id})">${sig ? "Continuar recorrido" : "Terminar"}</a>
+        <a class="btn main" href="${sig ? `?e=${sig.id}` : "?v=encuesta"}"
+           onclick="marcarVisitada(${e.id})">${sig ? "Continuar recorrido" : "Dar mi opinión"}</a>
       </div>
     </section>`;
 
   const mv = document.getElementById("mv");
   const note = document.getElementById("note");
   const aviso = t => { note.textContent = t; note.style.display = "block"; };
-
   mv.addEventListener("load", () => {
-    marcarVisitada(e.id);   // QR escaneado + modelo cargado = estación descubierta
+    marcarVisitada(e.id);
     if(!mv.canActivateAR){
       aviso("Para ver el modelo en tu entorno abre esta página en Safari desde un iPhone (iOS 15 o superior).");
     }
@@ -179,12 +365,89 @@ function vistaEstacion(e){
   });
 }
 
-/* Router: ?e=N muestra la estación, sin parámetro muestra el pasaporte */
-const n = parseInt(new URLSearchParams(location.search).get("e"), 10);
+/* ---------- Encuesta ---------- */
+const OPC = {
+  origen: ["Colbún","Otra comuna del Maule","Otra región de Chile","Otro país"],
+  edad: ["Menor de 18","18 a 29","30 a 59","60 o más"],
+  exp: ["1","2","3","4","5"]
+};
+
+async function vaciarCola(){
+  if(!ENCUESTA_URL) return;
+  const cola = leer(COLA);
+  if(!cola.length) return;
+  const resto = [];
+  for(const r of cola){
+    try { await fetch(ENCUESTA_URL, {method:"POST", mode:"no-cors", body:new URLSearchParams(r)}); }
+    catch(err){ resto.push(r); }
+  }
+  guardar(COLA, resto);
+}
+
+function vistaEncuesta(){
+  barra("encuesta");
+  const sel = {origen:"", edad:"", exp:""};
+  const grupo = (k, titulo, extra="") => `
+    <div class="card q"><h3>${titulo}</h3>
+      <div class="chips ${extra}" data-k="${k}">
+        ${OPC[k].map(o => `<button type="button" class="chip" data-v="${esc(o)}">${esc(o)}</button>`).join("")}
+      </div></div>`;
+  $app.innerHTML = `
+    <div class="enc" id="enc">
+      <h2>Encuesta del visitante</h2>
+      <p class="lead">Es anónima y toma menos de un minuto.</p>
+      ${grupo("origen","¿De dónde nos visitas?")}
+      ${grupo("edad","Tu rango de edad")}
+      ${grupo("exp","¿Cómo fue tu experiencia? (1 a 5)","nums")}
+      <div class="card q"><h3>Comentarios (opcional)</h3><textarea id="coment" maxlength="500"></textarea></div>
+      <div class="msg" id="msg"></div>
+      <button class="send" id="enviar">Enviar encuesta</button>
+    </div>`;
+
+  document.querySelectorAll(".chips").forEach(g => {
+    g.addEventListener("click", ev => {
+      const b = ev.target.closest(".chip"); if(!b) return;
+      g.querySelectorAll(".chip").forEach(c => c.classList.remove("sel"));
+      b.classList.add("sel");
+      sel[g.dataset.k] = b.dataset.v;
+    });
+  });
+
+  document.getElementById("enviar").onclick = async () => {
+    const msg = document.getElementById("msg");
+    if(!sel.origen || !sel.edad || !sel.exp){
+      msg.textContent = "Responde las tres preguntas para enviar.";
+      return;
+    }
+    const resp = {
+      fecha: new Date().toISOString(),
+      origen: sel.origen, edad: sel.edad, experiencia: sel.exp,
+      comentario: document.getElementById("coment").value.trim(),
+      estaciones: String(leerVisitadas().length)
+    };
+    const cola = leer(COLA); cola.push(resp); guardar(COLA, cola);
+    vaciarCola();
+    document.getElementById("enc").innerHTML = `
+      <div class="card thanks">
+        <div style="font-size:42px">🙌</div>
+        <h2>¡Gracias por tu opinión!</h2>
+        <p class="lead">Tus respuestas nos ayudan a mejorar el recorrido.</p>
+        <a class="btn main" href="./" style="display:block">Volver al pasaporte</a>
+      </div>`;
+  };
+}
+
+/* ---------- Router ---------- */
+const params = new URLSearchParams(location.search);
+const n = parseInt(params.get("e"), 10);
 const est = ESTACIONES.find(x => x.id === n);
-if(est) vistaEstacion(est);
-else if(location.search.includes("e=")) $app.innerHTML = `<div class="err">Código QR no válido.<br><a href="./">Ir al pasaporte</a></div>`;
+if(params.get("v") === "encuesta") vistaEncuesta();
+else if(est) vistaEstacion(est);
+else if(params.has("e")){ barra("pasaporte"); $app.innerHTML = `<div class="err">Código QR no válido.<br><a href="./">Ir al pasaporte</a></div>`; }
 else vistaPasaporte();
+
+window.addEventListener("online", vaciarCola);
+vaciarCola();
 
 /* Service worker: deja la página y los modelos en caché para usarla sin conexión */
 if("serviceWorker" in navigator){
