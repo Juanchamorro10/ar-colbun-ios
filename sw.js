@@ -1,5 +1,5 @@
-// Cache para uso sin conexión. Si cambian modelos o textos, suban el número de versión.
-const VERSION = "angostura-v1";
+// Cache para uso sin conexión. Cada vez que cambien archivos, suban el número de versión.
+const VERSION = "angostura-v2";
 const CORE = [
   "./", "index.html", "lib/model-viewer.min.js",
   "models/estacion1.glb", "models/estacion2.glb", "models/estacion3.glb",
@@ -19,13 +19,28 @@ self.addEventListener("activate", e => {
 });
 
 self.addEventListener("fetch", e => {
-  if (e.request.method !== "GET") return;
+  const req = e.request;
+  if (req.method !== "GET") return;
+
+  // Páginas: primero internet (así siempre ven la última versión), y si no hay señal, el caché.
+  if (req.mode === "navigate") {
+    e.respondWith(
+      fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(VERSION).then(c => c.put(req, copy));
+        return res;
+      }).catch(() => caches.match(req, { ignoreSearch: true }).then(h => h || caches.match("index.html")))
+    );
+    return;
+  }
+
+  // Modelos y librerías: primero caché.
   e.respondWith(
-    caches.match(e.request, { ignoreSearch: true }).then(hit =>
-      hit || fetch(e.request).then(res => {
-        if (res.ok && new URL(e.request.url).origin === location.origin) {
+    caches.match(req, { ignoreSearch: true }).then(hit =>
+      hit || fetch(req).then(res => {
+        if (res.ok && new URL(req.url).origin === location.origin) {
           const copy = res.clone();
-          caches.open(VERSION).then(c => c.put(e.request, copy));
+          caches.open(VERSION).then(c => c.put(req, copy));
         }
         return res;
       })
