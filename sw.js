@@ -1,5 +1,5 @@
 // Cache para uso sin conexión. Cada vez que cambien archivos, suban el número de versión.
-const VERSION = "angostura-v3";
+const VERSION = "angostura-v4";
 const CORE = [
   "./", "index.html", "lib/model-viewer.min.js",
   "models/estacion1.glb", "models/estacion2.glb", "models/estacion3.glb",
