@@ -159,6 +159,7 @@ const ESTACIONES = [
     corto:"El origen de la vida y transformación del agua",
     sub:"El origen de la vida (H2O). Molécula formada por dos átomos de hidrógeno y uno de oxígeno.",
     modelo:"models/estacion1.glb", usdz:"", audio:"",
+    scale: "5 5 5", // 👈 AQUÍ: Multiplica el tamaño por 5 (puedes probar 3 3 3, 5 5 5, 10 10 10, etc.)
     ficha:[
       {p:"El agua modela la Tierra y provee energía. En su ciclo de permanente transformación, posee tres estados: sólido, líquido y gaseoso. Los ríos fluyen continuamente desde la alta montaña hasta desembocar en el mar, lagos u otros ríos."}
     ]},
@@ -398,6 +399,7 @@ function vistaEstacion(e){
     <div class="viewer-wrap">
       <model-viewer id="mv" src="${esc(e.modelo)}" ${e.usdz ? `ios-src="${esc(e.usdz)}"` : ""}
         alt="Modelo 3D: ${esc(e.titulo)}"
+        ${e.scale ? `scale="${esc(e.scale)}"` : ""}
         ar ar-modes="quick-look webxr scene-viewer" ar-placement="floor" ar-scale="auto"
         camera-controls touch-action="pan-y" auto-rotate autoplay
         shadow-intensity="1" environment-image="neutral" exposure="1.1">
