@@ -110,6 +110,10 @@
     padding:15px 44px;font-size:17px;font-weight:650;box-shadow:0 8px 20px rgba(11,92,173,.3)}
   .msg{text-align:center;font-size:13px;color:#b42318;min-height:18px}
   .thanks{text-align:center;padding:28px 18px}
+  .status{margin:12px 0 16px;padding:10px 12px;border-radius:10px;font-size:14px;text-align:left}
+  .status.ok{background:var(--green-soft);color:#1f7a39;border:1px solid var(--green-line)}
+  .status.wait{background:#fff7e6;color:#6b5a1f;border:1px solid #f0dfb5}
+  .send:disabled{opacity:.6}
   .thanks h2{margin:8px 0}
 
   /* Barra inferior y hoja QR */
@@ -233,6 +237,70 @@ const ESTACIONES = [
 ];
 
 const PUNTOS_POR_ESTACION = 12;
+
+/* ---------- Servidor local (laptop en la misma red Wi-Fi, sin internet) ----------
+   Si la IP cambia, hay 3 formas de arreglarlo:
+   1) Cambiar LOCAL_DEFAULT aquí.
+   2) Abrir la página una vez con ?srv=192.168.1.50  (o 192.168.1.50:8000); queda guardado en ese teléfono.
+   3) Servir esta página desde la propia laptop (http://IP:8080): usa automáticamente esa misma IP. */
+const LOCAL_DEFAULT = "http://192.168.137.1:8000/api/encuesta";
+const LOCAL_KEY = "angostura_srv";
+const COLA_LOCAL = "angostura_encuestas_local";
+
+function normalizarSrv(txt){
+  let s = String(txt || "").trim();
+  if(!s) return "";
+  if(!/^https?:\/\//i.test(s)) s = "http://" + s;
+  try{
+    const u = new URL(s);
+    if(!/:\d+(\/|$)/.test(s.replace(/^https?:\/\//i, ""))) u.port = "8000";
+    if(u.pathname === "/") u.pathname = "/api/encuesta";
+    return u.toString();
+  }catch(e){ return ""; }
+}
+(function(){
+  const q = new URLSearchParams(location.search).get("srv");
+  const u = q && normalizarSrv(q);
+  if(u){ try{ localStorage.setItem(LOCAL_KEY, u); }catch(e){} }
+})();
+function urlLocal(){
+  try{ const g = localStorage.getItem(LOCAL_KEY); if(g) return g; }catch(e){}
+  if(location.protocol === "http:" && location.hostname && location.hostname !== "localhost")
+    return "http://" + location.hostname + ":8000/api/encuesta";
+  return LOCAL_DEFAULT;
+}
+function fechaLocal(){
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate()) + " " +
+         p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
+}
+async function postLocal(datos){
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 5000);   // si el Wi-Fi se cuelga, no espera para siempre
+  try{
+    const r = await fetch(urlLocal(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(datos),
+      signal: ctrl.signal
+    });
+    return r.ok;
+  }catch(e){
+    if(location.protocol === "https:" && urlLocal().startsWith("http:"))
+      console.warn("Safari bloquea http desde una página https (mixed content). Abre la página por http desde la laptop.");
+    return false;
+  }finally{ clearTimeout(t); }
+}
+let vaciandoLocal = false;
+async function vaciarLocal(){
+  if(vaciandoLocal) return;
+  vaciandoLocal = true;
+  try{
+    const enviados = new Set();
+    for(const d of leer(COLA_LOCAL)){ if(await postLocal(d)) enviados.add(d.id_sesion); }
+    if(enviados.size) guardar(COLA_LOCAL, leer(COLA_LOCAL).filter(d => !enviados.has(d.id_sesion)));
+  }finally{ vaciandoLocal = false; }
+}
 /* ============================================================ */
 
 const $app = document.getElementById("app");
@@ -367,7 +435,7 @@ function vistaEstacion(e){
 
 /* ---------- Encuesta ---------- */
 const OPC = {
-  origen: ["Colbún","Otra comuna del Maule","Otra región de Chile","Otro país"],
+  origen: ["Santa Bárbara","Quilaco","Los Ángeles","Otra comuna del Biobío","Otra región de Chile","Otro país"],
   edad: ["Menor de 18","18 a 29","30 a 59","60 o más"],
   exp: ["1","2","3","4","5"]
 };
@@ -419,19 +487,45 @@ function vistaEncuesta(){
       msg.textContent = "Responde las tres preguntas para enviar.";
       return;
     }
+    const btn = document.getElementById("enviar");
+    btn.disabled = true; btn.textContent = "Enviando…"; msg.textContent = "";
+
+    const comentario = document.getElementById("coment").value.trim();
+    const visitadas = leerVisitadas().length;
+
+    // Copia para Google Sheets (como antes)
     const resp = {
       fecha: new Date().toISOString(),
       origen: sel.origen, edad: sel.edad, experiencia: sel.exp,
-      comentario: document.getElementById("coment").value.trim(),
-      estaciones: String(leerVisitadas().length)
+      comentario, estaciones: String(visitadas)
     };
     const cola = leer(COLA); cola.push(resp); guardar(COLA, cola);
     vaciarCola();
+
+    // Envío al servidor local
+    const datos = {
+      id_sesion: "ios_" + Date.now(),
+      origen: sel.origen,
+      edad: sel.edad,
+      nota: parseInt(sel.exp, 10),
+      comentario,
+      fecha: fechaLocal()
+    };
+    const ok = await postLocal(datos);
+    if(ok){
+      vaciarLocal();   // aprovecha para mandar lo que quedó pendiente
+    }else{
+      const cl = leer(COLA_LOCAL); cl.push(datos); guardar(COLA_LOCAL, cl);   // respaldo offline
+    }
+
     document.getElementById("enc").innerHTML = `
       <div class="card thanks">
         <div style="font-size:42px">🙌</div>
         <h2>¡Gracias por tu opinión!</h2>
         <p class="lead">Tus respuestas nos ayudan a mejorar el recorrido.</p>
+        ${ok
+          ? `<div class="status ok">✅ ¡Encuesta enviada con éxito!</div>`
+          : `<div class="status wait">📥 No hay conexión con el servidor. Tu respuesta quedó guardada en este teléfono y se enviará sola cuando vuelva el Wi-Fi.</div>`}
         <a class="btn main" href="./" style="display:block">Volver al pasaporte</a>
       </div>`;
   };
@@ -446,8 +540,9 @@ else if(est) vistaEstacion(est);
 else if(params.has("e")){ barra("pasaporte"); $app.innerHTML = `<div class="err">Código QR no válido.<br><a href="./">Ir al pasaporte</a></div>`; }
 else vistaPasaporte();
 
-window.addEventListener("online", vaciarCola);
+window.addEventListener("online", () => { vaciarCola(); vaciarLocal(); });
 vaciarCola();
+vaciarLocal();
 
 /* Service worker: deja la página y los modelos en caché para usarla sin conexión */
 if("serviceWorker" in navigator){
